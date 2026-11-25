@@ -1,0 +1,117 @@
+{
+  "total": "202/202",
+  "fixtures": [
+    {
+      "name": "inv-001",
+      "layout": "B",
+      "confidence": 93,
+      "passed": "17/17",
+      "failures": []
+    },
+    {
+      "name": "inv-002",
+      "layout": "A",
+      "confidence": 95,
+      "passed": "12/12",
+      "failures": []
+    },
+    {
+      "name": "inv-003",
+      "layout": "A",
+      "confidence": 95,
+      "passed": "12/12",
+      "failures": []
+    },
+    {
+      "name": "inv-004",
+      "layout": "A",
+      "confidence": 95,
+      "passed": "12/12",
+      "failures": []
+    },
+    {
+      "name": "inv-005",
+      "layout": "A",
+      "confidence": 95,
+      "passed": "12/12",
+      "failures": []
+    },
+    {
+      "name": "inv-006",
+      "layout": "A",
+      "confidence": 95,
+      "passed": "12/12",
+      "failures": []
+    },
+    {
+      "name": "inv-007",
+      "layout": "A",
+      "confidence": 94,
+      "passed": "17/17",
+      "failures": []
+    },
+    {
+      "name": "inv-008",
+      "layout": "A",
+      "confidence": 95,
+      "passed": "12/12",
+      "failures": []
+    },
+    {
+      "name": "inv-009",
+      "layout": "A",
+      "confidence": 95,
+      "passed": "12/12",
+      "failures": []
+    },
+    {
+      "name": "inv-010",
+      "layout": "B",
+      "confidence": 94,
+      "passed": "12/12",
+      "failures": []
+    },
+    {
+      "name": "inv-011",
+      "layout": "A",
+      "confidence": 95,
+      "passed": "12/12",
+      "failures": []
+    },
+    {
+      "name": "inv-012",
+      "layout": "A",
+      "confidence": 95,
+      "passed": "12/12",
+      "failures": []
+    },
+    {
+      "name": "inv-013",
+      "layout": "A",
+      "confidence": 95,
+      "passed": "12/12",
+      "failures": []
+    },
+    {
+      "name": "inv-014",
+      "layout": "A",
+      "confidence": 95,
+      "passed": "12/12",
+      "failures": []
+    },
+    {
+      "name": "inv-015",
+      "layout": "B",
+      "confidence": 93,
+      "passed": "12/12",
+      "failures": []
+    },
+    {
+      "name": "inv-016",
+      "layout": "A",
+      "confidence": 95,
+      "passed": "12/12",
+      "failures": []
+    }
+  ]
+}

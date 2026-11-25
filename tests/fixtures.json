@@ -1,0 +1,379 @@
+{
+  "1d8b92e0cb46cde89460651fadb40a9eb7b0c71d617b04d2375be71cc7c578dd": {
+    "name": "inv-001",
+    "layout": "B",
+    "ground_truth": {
+      "vendor_id": "VND-002",
+      "vendor_invoice_number": "DT-2001",
+      "po_id": "PO-002",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-002-L1",
+          "sku": "TONER-X",
+          "qty": 10,
+          "unit_price_pt": 15000,
+          "line_total_pt": 150000
+        },
+        {
+          "po_line_id": "PO-002-L2",
+          "sku": "CABLE-USB",
+          "qty": 200,
+          "unit_price_pt": 750,
+          "line_total_pt": 150000
+        }
+      ],
+      "subtotal_pt": 300000,
+      "tax_pt": 21000,
+      "total_pt": 321000
+    }
+  },
+  "a8352247b07b42e91a9d3f4d570698cf48613ede09a0eec5df2ee06a48ee403b": {
+    "name": "inv-002",
+    "layout": "A",
+    "ground_truth": {
+      "vendor_id": "VND-001",
+      "vendor_invoice_number": "NS-1002",
+      "po_id": "PO-001",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-001-L1",
+          "sku": "NOTE-A5",
+          "qty": 60,
+          "unit_price_pt": 2000,
+          "line_total_pt": 120000
+        }
+      ],
+      "subtotal_pt": 120000,
+      "tax_pt": 16800,
+      "total_pt": 136800
+    }
+  },
+  "fcfef96c155ea4b32e0babf01d12fa577cde65b595bc4f832c663c2ef55a48fc": {
+    "name": "inv-003",
+    "layout": "A",
+    "ground_truth": {
+      "vendor_id": "VND-001",
+      "vendor_invoice_number": "NS-1003",
+      "po_id": "PO-001",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-001-L1",
+          "sku": "NOTE-A5",
+          "qty": 40,
+          "unit_price_pt": 2000,
+          "line_total_pt": 80000
+        }
+      ],
+      "subtotal_pt": 80000,
+      "tax_pt": 11200,
+      "total_pt": 91200
+    }
+  },
+  "2e43fd0ba856b1b576eb7cda7bfc1ef1aa2c41e123b109523c5dbe2fab6de8af": {
+    "name": "inv-004",
+    "layout": "A",
+    "ground_truth": {
+      "vendor_id": "VND-001",
+      "vendor_invoice_number": "NS-1004",
+      "po_id": "PO-001",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-001-L1",
+          "sku": "NOTE-A5",
+          "qty": 50,
+          "unit_price_pt": 2000,
+          "line_total_pt": 100000
+        }
+      ],
+      "subtotal_pt": 100000,
+      "tax_pt": 14000,
+      "total_pt": 114000
+    }
+  },
+  "36b7ec418c533ca88d63e31b1afbe0359622b5f8a2db23cf8210ca7eb1502de0": {
+    "name": "inv-005",
+    "layout": "A",
+    "ground_truth": {
+      "vendor_id": "VND-001",
+      "vendor_invoice_number": "NS-1005",
+      "po_id": "PO-001",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-001-L2",
+          "sku": "PEN-BLUE",
+          "qty": 10,
+          "unit_price_pt": 530,
+          "line_total_pt": 5300
+        }
+      ],
+      "subtotal_pt": 5300,
+      "tax_pt": 742,
+      "total_pt": 6042
+    }
+  },
+  "a53b8d78100e8169ca3c863cf5adfff16ff561cee548ea6cfa5f23c22ce7dadc": {
+    "name": "inv-006",
+    "layout": "A",
+    "ground_truth": {
+      "vendor_id": "VND-001",
+      "vendor_invoice_number": "NS-1006",
+      "po_id": "PO-001",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-001-L2",
+          "sku": "PEN-BLUE",
+          "qty": 10,
+          "unit_price_pt": 1200,
+          "line_total_pt": 12000
+        }
+      ],
+      "subtotal_pt": 12000,
+      "tax_pt": 1680,
+      "total_pt": 13680
+    }
+  },
+  "7f11f99dc231b02a916bd655c6940acb0b769059f37d5d7f7c7dd45550d59388": {
+    "name": "inv-007",
+    "layout": "A",
+    "ground_truth": {
+      "vendor_id": "VND-001",
+      "vendor_invoice_number": "NS-1007",
+      "po_id": "PO-001",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-001-L2",
+          "sku": "PEN-BLUE",
+          "qty": 10,
+          "unit_price_pt": 800,
+          "line_total_pt": 8000
+        },
+        {
+          "po_line_id": "PO-003-L1",
+          "sku": "PAPER-A4",
+          "qty": 7,
+          "unit_price_pt": 2299,
+          "line_total_pt": 16093
+        }
+      ],
+      "subtotal_pt": 24093,
+      "tax_pt": 3373,
+      "total_pt": 27466
+    }
+  },
+  "0a05033b6ab1bd55f85335e67452494df43825be5226646a0a7c49b289417888": {
+    "name": "inv-008",
+    "layout": "A",
+    "ground_truth": {
+      "vendor_id": "VND-002",
+      "vendor_invoice_number": "DT-2001",
+      "po_id": "PO-002",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-002-L1",
+          "sku": "TONER-X",
+          "qty": 5,
+          "unit_price_pt": 15000,
+          "line_total_pt": 75000
+        }
+      ],
+      "subtotal_pt": 75000,
+      "tax_pt": 10500,
+      "total_pt": 85500
+    }
+  },
+  "2e09a2c43b7d15a490151126dbc34d3319622740fb4e4d27fe045d56b2da0bc2": {
+    "name": "inv-009",
+    "layout": "A",
+    "ground_truth": {
+      "vendor_id": "VND-001",
+      "vendor_invoice_number": "NS-1009",
+      "po_id": "PO-999",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-999-L1",
+          "sku": "NOTE-A5",
+          "qty": 10,
+          "unit_price_pt": 2000,
+          "line_total_pt": 20000
+        }
+      ],
+      "subtotal_pt": 20000,
+      "tax_pt": 2800,
+      "total_pt": 22800
+    }
+  },
+  "ac481720f322418c4182720babd48256cecf291204021829de8aec7bc73c1b31": {
+    "name": "inv-010",
+    "layout": "B",
+    "ground_truth": {
+      "vendor_id": "VND-002",
+      "vendor_invoice_number": "DT-2010",
+      "po_id": "PO-004",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-004-L1",
+          "sku": "STAPLER",
+          "qty": 20,
+          "unit_price_pt": 3000,
+          "line_total_pt": 60000
+        }
+      ],
+      "subtotal_pt": 60000,
+      "tax_pt": 8400,
+      "total_pt": 68400
+    }
+  },
+  "67a1619c75e2d8c3c80ab76a934efabbb80e64bc1600233c4111bd16bfa5d96c": {
+    "name": "inv-011",
+    "layout": "A",
+    "ground_truth": {
+      "vendor_id": "VND-001",
+      "vendor_invoice_number": "NS-1011",
+      "po_id": "PO-001",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-001-L2",
+          "sku": "PEN-BLUE",
+          "qty": 10,
+          "unit_price_pt": 500,
+          "line_total_pt": 5000
+        }
+      ],
+      "subtotal_pt": 5000,
+      "tax_pt": 600,
+      "total_pt": 5600
+    }
+  },
+  "224c1034aea767d5b4451fe41109538e14b4b688dd15707b9768fb4f77a3da8e": {
+    "name": "inv-012",
+    "layout": "A",
+    "ground_truth": {
+      "vendor_id": "VND-001",
+      "vendor_invoice_number": "NS-1012",
+      "po_id": "PO-001",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-001-L2",
+          "sku": "PEN-BLUE",
+          "qty": 10,
+          "unit_price_pt": 500,
+          "line_total_pt": 5000
+        }
+      ],
+      "subtotal_pt": 5000,
+      "tax_pt": 700,
+      "total_pt": 5700
+    },
+    "mock_override": {
+      "lines": [
+        {
+          "po_line_id": "PO-001-L2",
+          "sku": "PEN-BLUE",
+          "qty": 10,
+          "unit_price_pt": 500,
+          "line_total_pt": 6000
+        }
+      ]
+    }
+  },
+  "256ba1ab1ef8d65f8cb6f974e9ccce2019d564a9efa8a87448854c5cd39a23a5": {
+    "name": "inv-013",
+    "layout": "A",
+    "ground_truth": {
+      "vendor_id": "VND-001",
+      "vendor_invoice_number": "NS-1013",
+      "po_id": "PO-001",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-001-L2",
+          "sku": "PEN-BLUE",
+          "qty": 10,
+          "unit_price_pt": 520,
+          "line_total_pt": 5200
+        }
+      ],
+      "subtotal_pt": 5200,
+      "tax_pt": 728,
+      "total_pt": 5928
+    }
+  },
+  "6698f3ebcf1c5e42794fc08498951f337153676ae6c2ef0c5f94a39b166b47cd": {
+    "name": "inv-014",
+    "layout": "A",
+    "ground_truth": {
+      "vendor_id": "VND-001",
+      "vendor_invoice_number": "NS-1014",
+      "po_id": "PO-001",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-001-L2",
+          "sku": "PEN-BLUE",
+          "qty": 5,
+          "unit_price_pt": 540,
+          "line_total_pt": 2700
+        }
+      ],
+      "subtotal_pt": 2700,
+      "tax_pt": 378,
+      "total_pt": 3078
+    }
+  },
+  "04b182a629fa43b82b5a4d0163521de605e4cad62f17c53bae061ce58f29c7f8": {
+    "name": "inv-015",
+    "layout": "B",
+    "ground_truth": {
+      "vendor_id": "VND-001",
+      "vendor_invoice_number": "NS-1015",
+      "po_id": "PO-003",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-003-L1",
+          "sku": "PAPER-A4",
+          "qty": 7,
+          "unit_price_pt": 1999,
+          "line_total_pt": 13993
+        }
+      ],
+      "subtotal_pt": 13993,
+      "tax_pt": 1959,
+      "total_pt": 15952
+    }
+  },
+  "5048edc9e70425b91448c530971bf08c36e8a86679bd414090f789c726adcb3d": {
+    "name": "inv-016",
+    "layout": "A",
+    "ground_truth": {
+      "vendor_id": "VND-001",
+      "vendor_invoice_number": "NS-1016",
+      "po_id": "PO-001",
+      "invoice_date": "2026-11-22",
+      "lines": [
+        {
+          "po_line_id": "PO-001-L2",
+          "sku": "PEN-BLUE",
+          "qty": 10,
+          "unit_price_pt": 530,
+          "line_total_pt": 5300
+        }
+      ],
+      "subtotal_pt": 5300,
+      "tax_pt": 700,
+      "total_pt": 6000
+    }
+  }
+}

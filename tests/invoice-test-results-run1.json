@@ -1,0 +1,272 @@
+{
+  "run": "run1",
+  "passed": 53,
+  "total": 53,
+  "checks": [
+    {
+      "name": "S01 auto_matched/exact_match",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-1d8b92e0', 'vendor_id': 'VND-002', 'vendor_invoice_number': 'DT-2001', 'document_hash': '1d8b92e0cb46cde89460651fadb40a9eb7b0c71d617b04d2375be71cc7c578dd', 'status': 'auto_matched', 'reason_code': 'exact_match', 'version': 1, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 300000, 'tax_piastres': 21000, 'total_piastres': 321000, 'created_at': '2026-11-22"
+    },
+    {
+      "name": "S01 two allocations (TONER + CABLE)",
+      "ok": true,
+      "detail": "2"
+    },
+    {
+      "name": "S02 auto_matched/partial_match",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-a8352247', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1002', 'document_hash': 'a8352247b07b42e91a9d3f4d570698cf48613ede09a0eec5df2ee06a48ee403b', 'status': 'auto_matched', 'reason_code': 'partial_match', 'version': 1, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 120000, 'tax_piastres': 16800, 'total_piastres': 136800, 'created_at': '2026-11-"
+    },
+    {
+      "name": "S03 auto_matched",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-fcfef96c', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1003', 'document_hash': 'fcfef96c155ea4b32e0babf01d12fa577cde65b595bc4f832c663c2ef55a48fc', 'status': 'auto_matched', 'reason_code': 'exact_match', 'version': 1, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 80000, 'tax_piastres': 11200, 'total_piastres': 91200, 'created_at': '2026-11-22T1"
+    },
+    {
+      "name": "S03 NOTE-A5 consumed 100",
+      "ok": true,
+      "detail": "100"
+    },
+    {
+      "name": "S04 blocked/insufficient_received",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-2e43fd0b', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1004', 'document_hash': '2e43fd0ba856b1b576eb7cda7bfc1ef1aa2c41e123b109523c5dbe2fab6de8af', 'status': 'blocked', 'reason_code': 'insufficient_received', 'version': 1, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 100000, 'tax_piastres': 14000, 'total_piastres': 114000, 'created_at': '2026-"
+    },
+    {
+      "name": "S04 no allocation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "S05 needs_review/price_variance_review",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-36b7ec41', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1005', 'document_hash': '36b7ec418c533ca88d63e31b1afbe0359622b5f8a2db23cf8210ca7eb1502de0', 'status': 'needs_review', 'reason_code': 'price_variance_review', 'version': 1, 'current_review_id': 'REV-INV-36b7ec41-v1', 'submitter_id': '222222', 'subtotal_piastres': 5300, 'tax_piastres': 742, 'total_piastres': 6042, 'c"
+    },
+    {
+      "name": "S05 review request (buttons) to reviewer only",
+      "ok": true,
+      "detail": "{'reviewer_msgs': [{'chat_id': '111111', 'text': 'Invoice review needed\\nInvoice: NS-1005\\nVendor: VND-001\\nTotal: EGP 60.42\\nDiscrepancy: price_variance_review\\nVersion: v1 | Review: REV-INV-36b7ec41-v1', 'reply_markup': {'inline_keyboard': [[{'text': 'Approve', 'callback_data': 'approve:INV-36b7ec41:1:REV-INV-36b7ec41-v1'}, {'text': 'Reject', 'callback_data': 'reject:INV-36b7ec41:1:REV-INV-36b7e"
+    },
+    {
+      "name": "S05 approve -> exception_approved",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-36b7ec41', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1005', 'document_hash': '36b7ec418c533ca88d63e31b1afbe0359622b5f8a2db23cf8210ca7eb1502de0', 'status': 'exception_approved', 'reason_code': 'manual_approve', 'version': 1, 'current_review_id': 'REV-INV-36b7ec41-v1', 'submitter_id': '222222', 'subtotal_piastres': 5300, 'tax_piastres': 742, 'total_piastres': 6042, 'cr"
+    },
+    {
+      "name": "S05 allocation recorded (10 PEN-BLUE)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "S06a blocked/price_variance_blocked",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-a53b8d78', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1006', 'document_hash': 'a53b8d78100e8169ca3c863cf5adfff16ff561cee548ea6cfa5f23c22ce7dadc', 'status': 'blocked', 'reason_code': 'price_variance_blocked', 'version': 1, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 12000, 'tax_piastres': 1680, 'total_piastres': 13680, 'created_at': '2026-11"
+    },
+    {
+      "name": "S06a approval attempt blocked + audited",
+      "ok": true,
+      "detail": "{'audit_id': 'AUD-mws5ryci-1', 'invoice_id': 'INV-a53b8d78', 'old_status': 'blocked', 'new_status': 'blocked', 'reason_code': 'review_blocked_repeat', 'decided_by': '111111', 'note': 'invoice is already blocked', 'created_at': '2026-11-22T18:16:40.098Z'}"
+    },
+    {
+      "name": "S06a still blocked, no allocation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "S06b blocked/price_variance_blocked (sum 5100)",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-7f11f99d', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1007', 'document_hash': '7f11f99dc231b02a916bd655c6940acb0b769059f37d5d7f7c7dd45550d59388', 'status': 'blocked', 'reason_code': 'price_variance_blocked', 'version': 1, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 24093, 'tax_piastres': 3373, 'total_piastres': 27466, 'created_at': '2026-11"
+    },
+    {
+      "name": "S07 blocked/duplicate_invoice",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-0a05033b', 'vendor_id': 'VND-002', 'vendor_invoice_number': 'DT-2001', 'document_hash': '0a05033b6ab1bd55f85335e67452494df43825be5226646a0a7c49b289417888', 'status': 'blocked', 'reason_code': 'duplicate_invoice', 'version': 1, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 75000, 'tax_piastres': 10500, 'total_piastres': 85500, 'created_at': '2026-11-22T"
+    },
+    {
+      "name": "S08 duplicate_image, no new row",
+      "ok": true,
+      "detail": "(8, 8)"
+    },
+    {
+      "name": "S09 blocked/unknown_po",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-2e09a2c4', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1009', 'document_hash': '2e09a2c43b7d15a490151126dbc34d3319622740fb4e4d27fe045d56b2da0bc2', 'status': 'blocked', 'reason_code': 'unknown_po', 'version': 1, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 20000, 'tax_piastres': 2800, 'total_piastres': 22800, 'created_at': '2026-11-22T18:16:42"
+    },
+    {
+      "name": "S10 pending_receipt/missing_receipt",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-ac481720', 'vendor_id': 'VND-002', 'vendor_invoice_number': 'DT-2010', 'document_hash': 'ac481720f322418c4182720babd48256cecf291204021829de8aec7bc73c1b31', 'status': 'pending_receipt', 'reason_code': 'missing_receipt', 'version': 1, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 60000, 'tax_piastres': 8400, 'total_piastres': 68400, 'created_at': '2026-1"
+    },
+    {
+      "name": "S10 manual batch revalidate -> auto_matched",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-ac481720', 'vendor_id': 'VND-002', 'vendor_invoice_number': 'DT-2010', 'document_hash': 'ac481720f322418c4182720babd48256cecf291204021829de8aec7bc73c1b31', 'status': 'auto_matched', 'reason_code': 'exact_match', 'version': 1, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 60000, 'tax_piastres': 8400, 'total_piastres': 68400, 'created_at': '2026-11-22T18"
+    },
+    {
+      "name": "S10 STAPLER consumed 20",
+      "ok": true,
+      "detail": "20"
+    },
+    {
+      "name": "T-batch empty run is a no-op",
+      "ok": true,
+      "detail": "(14, 14)"
+    },
+    {
+      "name": "S11 blocked/tax_mismatch",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-67a1619c', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1011', 'document_hash': '67a1619c75e2d8c3c80ab76a934efabbb80e64bc1600233c4111bd16bfa5d96c', 'status': 'blocked', 'reason_code': 'tax_mismatch', 'version': 1, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 5000, 'tax_piastres': 600, 'total_piastres': 5600, 'created_at': '2026-11-22T18:16:49."
+    },
+    {
+      "name": "S12 needs_review/arithmetic_mismatch",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-224c1034', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1012', 'document_hash': '224c1034aea767d5b4451fe41109538e14b4b688dd15707b9768fb4f77a3da8e', 'status': 'needs_review', 'reason_code': 'arithmetic_mismatch', 'version': 1, 'current_review_id': 'REV-INV-224c1034-v1', 'submitter_id': '222222', 'subtotal_piastres': 5000, 'tax_piastres': 700, 'total_piastres': 5700, 'cre"
+    },
+    {
+      "name": "S12 correction_required",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-224c1034', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1012', 'document_hash': '224c1034aea767d5b4451fe41109538e14b4b688dd15707b9768fb4f77a3da8e', 'status': 'correction_required', 'reason_code': 'correction_requested', 'version': 1, 'current_review_id': 'REV-INV-224c1034-v1', 'submitter_id': '222222', 'subtotal_piastres': 5000, 'tax_piastres': 700, 'total_piastres': 57"
+    },
+    {
+      "name": "S12 old values snapshotted (6000)",
+      "ok": true,
+      "detail": "{'audit_id': 'AUD-mws5s6js-1', 'invoice_id': 'INV-224c1034', 'old_status': 'needs_review', 'new_status': 'correction_required', 'reason_code': 'correction_requested', 'decided_by': '111111', 'note': 'correction_requested | pre-correction v1 values: subtotal=5000 tax=700 total=5700 lines=[[\"PO-001-L2\",10,500,6000]]', 'created_at': '2026-11-22T18:16:50.728Z'}"
+    },
+    {
+      "name": "S12 revalidate v2 -> auto_matched",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-224c1034', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1012', 'document_hash': '224c1034aea767d5b4451fe41109538e14b4b688dd15707b9768fb4f77a3da8e', 'status': 'auto_matched', 'reason_code': 'partial_match', 'version': 2, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 5000, 'tax_piastres': 700, 'total_piastres': 5700, 'created_at': '2026-11-22T18:"
+    },
+    {
+      "name": "S13 needs_review",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-256ba1ab', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1013', 'document_hash': '256ba1ab1ef8d65f8cb6f974e9ccce2019d564a9efa8a87448854c5cd39a23a5', 'status': 'needs_review', 'reason_code': 'price_variance_review', 'version': 1, 'current_review_id': 'REV-INV-256ba1ab-v1', 'submitter_id': '222222', 'subtotal_piastres': 5200, 'tax_piastres': 728, 'total_piastres': 5928, 'c"
+    },
+    {
+      "name": "S13 wrong user blocked (auth)",
+      "ok": true,
+      "detail": "{'audit_id': 'AUD-mws5s81l-1', 'invoice_id': 'INV-256ba1ab', 'old_status': 'needs_review', 'new_status': 'needs_review', 'reason_code': 'review_blocked_auth', 'decided_by': '999999', 'note': 'decider 999999 is not the authorised reviewer', 'created_at': '2026-11-22T18:16:52.665Z'}"
+    },
+    {
+      "name": "S13 submitter blocked (SoD)",
+      "ok": true,
+      "detail": "{'audit_id': 'AUD-mws5s8yx-1', 'invoice_id': 'INV-256ba1ab', 'old_status': 'needs_review', 'new_status': 'needs_review', 'reason_code': 'review_blocked_submitter', 'decided_by': '222222', 'note': 'submitter cannot approve their own invoice', 'created_at': '2026-11-22T18:16:53.865Z'}"
+    },
+    {
+      "name": "S13 still needs_review, no allocation yet",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "S13 reviewer approve -> exception_approved",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-256ba1ab', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1013', 'document_hash': '256ba1ab1ef8d65f8cb6f974e9ccce2019d564a9efa8a87448854c5cd39a23a5', 'status': 'exception_approved', 'reason_code': 'manual_approve', 'version': 1, 'current_review_id': 'REV-INV-256ba1ab-v1', 'submitter_id': '222222', 'subtotal_piastres': 5200, 'tax_piastres': 728, 'total_piastres': 5928, 'cr"
+    },
+    {
+      "name": "S14 needs_review",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-6698f3eb', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1014', 'document_hash': '6698f3ebcf1c5e42794fc08498951f337153676ae6c2ef0c5f94a39b166b47cd', 'status': 'needs_review', 'reason_code': 'price_variance_review', 'version': 1, 'current_review_id': 'REV-INV-6698f3eb-v1', 'submitter_id': '222222', 'subtotal_piastres': 2700, 'tax_piastres': 378, 'total_piastres': 3078, 'c"
+    },
+    {
+      "name": "S14 correction_required",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-6698f3eb', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1014', 'document_hash': '6698f3ebcf1c5e42794fc08498951f337153676ae6c2ef0c5f94a39b166b47cd', 'status': 'correction_required', 'reason_code': 'correction_requested', 'version': 1, 'current_review_id': 'REV-INV-6698f3eb-v1', 'submitter_id': '222222', 'subtotal_piastres': 2700, 'tax_piastres': 378, 'total_piastres': 30"
+    },
+    {
+      "name": "S14 revalidate v2 -> auto_matched",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-6698f3eb', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1014', 'document_hash': '6698f3ebcf1c5e42794fc08498951f337153676ae6c2ef0c5f94a39b166b47cd', 'status': 'auto_matched', 'reason_code': 'partial_match', 'version': 2, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 2500, 'tax_piastres': 350, 'total_piastres': 2850, 'created_at': '2026-11-22T18:"
+    },
+    {
+      "name": "S14 replay v1 approve blocked (stale)",
+      "ok": true,
+      "detail": "{'audit_id': 'AUD-mws5sbug-1', 'invoice_id': 'INV-6698f3eb', 'old_status': 'auto_matched', 'new_status': 'auto_matched', 'reason_code': 'review_blocked_stale', 'decided_by': '111111', 'note': 'decision refers to version 1 / REV-INV-6698f3eb-v1, current is v2 / ', 'created_at': '2026-11-22T18:16:57.592Z'}"
+    },
+    {
+      "name": "S14 still auto_matched",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "S15 auto_matched/exact_match (float trap)",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-04b182a6', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1015', 'document_hash': '04b182a629fa43b82b5a4d0163521de605e4cad62f17c53bae061ce58f29c7f8', 'status': 'auto_matched', 'reason_code': 'exact_match', 'version': 1, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 13993, 'tax_piastres': 1959, 'total_piastres': 15952, 'created_at': '2026-11-22T18"
+    },
+    {
+      "name": "S16 blocked/tax_mismatch (variance within cap + wrong tax)",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-5048edc9', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1016', 'document_hash': '5048edc9e70425b91448c530971bf08c36e8a86679bd414090f789c726adcb3d', 'status': 'blocked', 'reason_code': 'tax_mismatch', 'version': 1, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 5300, 'tax_piastres': 700, 'total_piastres': 6000, 'created_at': '2026-11-22T18:16:58."
+    },
+    {
+      "name": "S16 no review request sent",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "S16 no allocation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "S16 approval attempt blocked + audited",
+      "ok": true,
+      "detail": "{'audit_id': 'AUD-mws5sdmq-1', 'invoice_id': 'INV-5048edc9', 'old_status': 'blocked', 'new_status': 'blocked', 'reason_code': 'review_blocked_repeat', 'decided_by': '111111', 'note': 'invoice is already blocked', 'created_at': '2026-11-22T18:16:59.906Z'}"
+    },
+    {
+      "name": "S16 still blocked, no allocation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "FINAL 7 auto_matched",
+      "ok": true,
+      "detail": "['INV-1d8b92e0', 'INV-a8352247', 'INV-fcfef96c', 'INV-ac481720', 'INV-224c1034', 'INV-6698f3eb', 'INV-04b182a6']"
+    },
+    {
+      "name": "FINAL 2 exception_approved",
+      "ok": true,
+      "detail": "['INV-36b7ec41', 'INV-256ba1ab']"
+    },
+    {
+      "name": "FINAL PEN-BLUE consumed 35/50",
+      "ok": true,
+      "detail": "35"
+    },
+    {
+      "name": "FINAL every invoice audited",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "FINAL no over-consumption",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "T-WRITEFAIL engine answers error on write failure",
+      "ok": true,
+      "detail": "{'status': 500, 'body': '{\"message\":\"Error in workflow\"}'}"
+    },
+    {
+      "name": "T-WRITEFAIL no invoice row written for the failed call",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "T-WRITEFAIL no Telegram message sent for the failed call",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "T-WRITEFAIL same payload succeeds after failures off",
+      "ok": true,
+      "detail": "{'status': 200, 'body': '{\"ok\":true,\"mode\":\"match\",\"outcome\":\"auto_matched\",\"invoice_id\":\"INV-writefai\",\"status\":\"auto_matched\",\"reason_code\":\"partial_match\",\"version\":1,\"current_review_id\":\"\",\"vendor_invoice_number\":\"NS-9001\",\"vendor_id\":\"VND-001\",\"total_piastres\":5700,\"submitter_id\":\"222222\",\"summary_text\":\"auto_matched /'}"
+    },
+    {
+      "name": "T-OCR real Tesseract intake -> auto_matched",
+      "ok": true,
+      "detail": "{'invoice_id': 'INV-a8352247', 'vendor_id': 'VND-001', 'vendor_invoice_number': 'NS-1002', 'document_hash': 'a8352247b07b42e91a9d3f4d570698cf48613ede09a0eec5df2ee06a48ee403b', 'status': 'auto_matched', 'reason_code': 'partial_match', 'version': 1, 'current_review_id': '', 'submitter_id': '222222', 'subtotal_piastres': 120000, 'tax_piastres': 16800, 'total_piastres': 136800, 'created_at': '2026-11-"
+    }
+  ]
+}

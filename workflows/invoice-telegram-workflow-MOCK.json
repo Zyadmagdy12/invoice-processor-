@@ -1,0 +1,1010 @@
+{
+  "name": "Invoice Processor — Telegram (Sample 3)",
+  "nodes": [
+    {
+      "id": "trigger",
+      "name": "Telegram Webhook (Mock)",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "invoice-telegram",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2
+    },
+    {
+      "id": "router",
+      "name": "Route Update",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "\nconst it = $input.first().json;\nconst isCallback = !!(it.callback_query || (it.body && it.body.callback_query));\nconst isPhoto = !!((it.message && it.message.photo) || (it.body && it.body.message && it.body.message.photo));\nreturn [{ json: { ...it, route: isCallback ? 'callback' : (isPhoto ? 'photo' : 'other') } }];\n"
+      },
+      "position": [
+        220,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "if-photo",
+      "name": "Photo?",
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "cond-if-photo-0",
+              "leftValue": "={{ $json.route }}",
+              "rightValue": "photo",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.string.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true
+      },
+      "position": [
+        440,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "if-cb",
+      "name": "Callback?",
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "cond-if-cb-0",
+              "leftValue": "={{ $json.route }}",
+              "rightValue": "callback",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.string.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true
+      },
+      "position": [
+        440,
+        320
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "pick",
+      "name": "Pick Photo",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "\nconst it = $input.first().json;\nconst root = it.body || it;\nconst msg = root.message || {};\nconst photos = msg.photo || [];\nconst file = photos.length ? photos[photos.length - 1] : {};\nconst from = msg.from || {};\nconst chat = msg.chat || {};\nreturn [{ json: { file_id: file.file_id || '', from_id: String(from.id || ''), chat_id: String(chat.id || from.id || '') } }];\n"
+      },
+      "position": [
+        660,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "getfile",
+      "name": "Get File (Mock Telegram)",
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'http://127.0.0.1:7999/telegram/getFile?file_id=' + $json.file_id }}",
+        "sendBody": false,
+        "contentType": "json",
+        "specifyBody": "json",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": false,
+              "responseFormat": "autodetect"
+            }
+          }
+        }
+      },
+      "position": [
+        880,
+        0
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "id": "ocr",
+      "name": "OCR Invoice",
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:7999/ocr",
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": false,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "position": [
+        1100,
+        0
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "continueOnFail": true
+    },
+    {
+      "id": "mg-ocr",
+      "name": "Merge OCR + Sender",
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 2,
+        "options": {}
+      },
+      "position": [
+        1320,
+        0
+      ],
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3
+    },
+    {
+      "id": "bpayload",
+      "name": "Build Engine Payload",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "\nconst it = $input.first().json;\nconst lines = (it.lines || []).map(l => ({ po_line_id: l.po_line_id || '', sku: l.sku || '',\n  qty: Number(l.qty || 0), unit_price_pt: Number(l.unit_price_pt || 0), line_total_pt: Number(l.line_total_pt || 0) }));\nconst invoice = { vendor_id: it.vendor_id || '', vendor_invoice_number: it.vendor_invoice_number || '',\n  po_id: it.po_id || '', invoice_date: it.invoice_date || '',\n  subtotal_pt: Number(it.subtotal_pt || 0), tax_pt: Number(it.tax_pt || 0), total_pt: Number(it.total_pt || 0),\n  document_hash: it.image_hash || '', submitter_id: it.from_id || '' };\nreturn [{ json: { engine_body: { mode: 'match', invoice, lines }, from_id: it.from_id || '', chat_id: it.chat_id || '' } }];\n"
+      },
+      "position": [
+        1540,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "call-eng",
+      "name": "Call Matching Engine",
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:5678/webhook/invoice-matching",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.engine_body) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": false,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "position": [
+        1760,
+        0
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "continueOnFail": false
+    },
+    {
+      "id": "if-rev",
+      "name": "Needs Review?",
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "cond-if-rev-0",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "needs_review",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.string.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true
+      },
+      "position": [
+        1980,
+        0
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "brev",
+      "name": "Build Review Message",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "\nconst it = $input.first().json;\nconst reviewer = \"111111\";\nconst text = 'Invoice review needed\\n'\n  + 'Invoice: ' + (it.vendor_invoice_number || it.invoice_id) + '\\n'\n  + 'Vendor: ' + (it.vendor_id || '') + '\\n'\n  + 'Total: EGP ' + (Number(it.total_piastres || 0) / 100).toFixed(2) + '\\n'\n  + 'Discrepancy: ' + (it.reason_code || '') + '\\n'\n  + 'Version: v' + (it.version || 1) + ' | Review: ' + (it.current_review_id || '');\nconst kb = { inline_keyboard: [[\n  { text: 'Approve', callback_data: 'approve:' + it.invoice_id + ':' + it.version + ':' + it.current_review_id },\n  { text: 'Reject', callback_data: 'reject:' + it.invoice_id + ':' + it.version + ':' + it.current_review_id },\n  { text: 'Correction', callback_data: 'correct:' + it.invoice_id + ':' + it.version + ':' + it.current_review_id },\n  { text: 'Defer', callback_data: 'defer:' + it.invoice_id + ':' + it.version + ':' + it.current_review_id },\n]]};\nreturn [{ json: { chat_id: reviewer, text, reply_markup: kb,\n  mock_body: JSON.stringify({ chat_id: reviewer, text, reply_markup: kb }) } }];\n"
+      },
+      "position": [
+        2200,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "send-rev",
+      "name": "Send Review Message (Mock Telegram)",
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:7999/telegram/sendMessage",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.mock_body }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "position": [
+        2420,
+        0
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "continueOnFail": true
+    },
+    {
+      "id": "bnotify",
+      "name": "Build Sender Notice",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "\nconst it = $input.first().json;\nconst num = it.vendor_invoice_number || it.invoice_id || '';\nlet text = '';\nif (it.status === 'auto_matched') text = 'Invoice ' + num + ' matched (' + (it.reason_code || '') + '). Allocation recorded.';\nelse if (it.status === 'needs_review') text = 'Invoice ' + num + ' needs human review: ' + (it.reason_code || '') + '. The reviewer has been notified.';\nelse if (it.status === 'pending_receipt') text = 'Invoice ' + num + ' is waiting for the goods receipt (missing_receipt). It will be revalidated when the receipt arrives.';\nelse if (it.status === 'blocked') text = 'Invoice ' + num + ' is blocked: ' + (it.reason_code || '') + '.';\nelse if (it.status === 'duplicate_image') text = 'This document was already submitted; no new invoice was created.';\nelse text = 'Invoice ' + num + ': ' + (it.summary_text || it.status || '');\nreturn [{ json: { chat_id: it.submitter_id || '', text, mock_body: JSON.stringify({ chat_id: it.submitter_id || '', text }) } }];\n"
+      },
+      "position": [
+        2200,
+        320
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "send-not",
+      "name": "Notify Sender (Mock Telegram)",
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:7999/telegram/sendMessage",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.mock_body }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "position": [
+        2420,
+        320
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "continueOnFail": true
+    },
+    {
+      "id": "parse-cb",
+      "name": "Parse Callback",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "\nconst it = $input.first().json;\nconst cb = it.callback_query || (it.body && it.body.callback_query) || {};\nconst data = (cb.data || '').trim();\nconst fromId = String((cb.from && cb.from.id) || '');\nconst parts = data.split(':');\nlet out = { from_id: fromId, chat_id: String((cb.message && cb.message.chat && cb.message.chat.id) || fromId) };\nif (parts[0] === 'reason' && parts.length >= 6){\n  out = { ...out, stage: 'reason', action: parts[1], reason_key: parts[2], invoice_id: parts[3], version: Number(parts[4]), review_id: parts[5] };\n} else if (parts.length >= 4){\n  out = { ...out, stage: 'action', action: parts[0], invoice_id: parts[1], version: Number(parts[2]), review_id: parts[3] };\n} else {\n  out = { ...out, stage: 'unknown', action: '', invoice_id: '', version: 0, review_id: '' };\n}\nreturn [{ json: { ...it, ...out } }];\n"
+      },
+      "position": [
+        660,
+        480
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "if-reason",
+      "name": "Reason Callback?",
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "cond-if-reason-0",
+              "leftValue": "={{ $json.stage }}",
+              "rightValue": "reason",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.string.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true
+      },
+      "position": [
+        880,
+        480
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "if-appr",
+      "name": "Approve?",
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "cond-if-appr-0",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "approve",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.string.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true
+      },
+      "position": [
+        1100,
+        480
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "if-rej",
+      "name": "Reject?",
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "cond-if-rej-0",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "reject",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.string.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true
+      },
+      "position": [
+        1320,
+        480
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "breason-a",
+      "name": "Build Reason Keyboard (Approve)",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "\nconst it = $input.first().json;\nconst a = it.action; const inv = it.invoice_id; const v = it.version; const r = it.review_id;\nconst reasons = a === 'approve'\n  ? [['price_within_policy', 'Price within EGP 50 policy'], ['rounding_accepted', 'Rounding accepted']]\n  : [['price_too_high', 'Price too high'], ['wrong_invoice', 'Wrong invoice'], ['duplicate', 'Duplicate']];\nconst kb = { inline_keyboard: reasons.map(([k, label]) => [{ text: label, callback_data: 'reason:' + a + ':' + k + ':' + inv + ':' + v + ':' + r }]) };\nconst text = 'Pick a reason for ' + a + ':';\nreturn [{ json: { chat_id: it.chat_id, text, reply_markup: kb,\n  mock_body: JSON.stringify({ chat_id: it.chat_id, text, reply_markup: kb }) } }];\n"
+      },
+      "position": [
+        1540,
+        320
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "sendreason-a",
+      "name": "Send Approve Reasons (Mock)",
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:7999/telegram/sendMessage",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.mock_body }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "position": [
+        1760,
+        320
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "continueOnFail": true
+    },
+    {
+      "id": "breason-r",
+      "name": "Build Reason Keyboard (Reject)",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "\nconst it = $input.first().json;\nconst a = it.action; const inv = it.invoice_id; const v = it.version; const r = it.review_id;\nconst reasons = a === 'approve'\n  ? [['price_within_policy', 'Price within EGP 50 policy'], ['rounding_accepted', 'Rounding accepted']]\n  : [['price_too_high', 'Price too high'], ['wrong_invoice', 'Wrong invoice'], ['duplicate', 'Duplicate']];\nconst kb = { inline_keyboard: reasons.map(([k, label]) => [{ text: label, callback_data: 'reason:' + a + ':' + k + ':' + inv + ':' + v + ':' + r }]) };\nconst text = 'Pick a reason for ' + a + ':';\nreturn [{ json: { chat_id: it.chat_id, text, reply_markup: kb,\n  mock_body: JSON.stringify({ chat_id: it.chat_id, text, reply_markup: kb }) } }];\n"
+      },
+      "position": [
+        1540,
+        480
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "sendreason-r",
+      "name": "Send Reject Reasons (Mock)",
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:7999/telegram/sendMessage",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.mock_body }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "position": [
+        1760,
+        480
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "continueOnFail": true
+    },
+    {
+      "id": "bapply",
+      "name": "Build Apply Call",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "\nconst it = $input.first().json;\nlet action = it.action || '';\nlet reasonKey = it.reason_key || '';\nif (action === 'correct') { action = 'correction'; reasonKey = reasonKey || 'correction_requested'; }\nif (action === 'defer') { reasonKey = reasonKey || 'deferred'; }\nconst decision = { invoice_id: it.invoice_id || '', version: Number(it.version || 0),\n  review_id: it.review_id || '', action, reason_key: reasonKey, from_id: it.from_id || '' };\nreturn [{ json: { engine_body: { mode: 'apply_exception', decision }, chat_id: it.chat_id || '', from_id: it.from_id || '' } }];\n"
+      },
+      "position": [
+        1540,
+        640
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "call-apply",
+      "name": "Call Engine (Apply)",
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:5678/webhook/invoice-matching",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.engine_body) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": false,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "position": [
+        1760,
+        640
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "continueOnFail": false
+    },
+    {
+      "id": "mg-conf",
+      "name": "Merge Confirm + Callback",
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 2,
+        "options": {}
+      },
+      "position": [
+        1980,
+        640
+      ],
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3
+    },
+    {
+      "id": "send-conf",
+      "name": "Send Confirmation (Mock Telegram)",
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:7999/telegram/sendMessage",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({chat_id: $json.chat_id, text: $json.summary_text}) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "position": [
+        2200,
+        640
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "continueOnFail": true
+    },
+    {
+      "id": "if-conf",
+      "name": "Submitter Notice?",
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "cond-if-conf-0",
+              "leftValue": "={{ $json.confirm_text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals",
+                "name": "filter.operator.string.notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true
+      },
+      "position": [
+        2420,
+        640
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "send-sub",
+      "name": "Notify Submitter (Mock Telegram)",
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:7999/telegram/sendMessage",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({chat_id: $json.submitter_id, text: $json.confirm_text}) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "position": [
+        2640,
+        640
+      ],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Telegram Webhook (Mock)": {
+      "main": [
+        [
+          {
+            "node": "Route Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Update": {
+      "main": [
+        [
+          {
+            "node": "Photo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Photo?": {
+      "main": [
+        [
+          {
+            "node": "Pick Photo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Callback?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Callback?": {
+      "main": [
+        [
+          {
+            "node": "Parse Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Photo": {
+      "main": [
+        [
+          {
+            "node": "Get File (Mock Telegram)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge OCR + Sender",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Get File (Mock Telegram)": {
+      "main": [
+        [
+          {
+            "node": "OCR Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OCR Invoice": {
+      "main": [
+        [
+          {
+            "node": "Merge OCR + Sender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge OCR + Sender": {
+      "main": [
+        [
+          {
+            "node": "Build Engine Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Engine Payload": {
+      "main": [
+        [
+          {
+            "node": "Call Matching Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Matching Engine": {
+      "main": [
+        [
+          {
+            "node": "Needs Review?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Review?": {
+      "main": [
+        [
+          {
+            "node": "Build Review Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Sender Notice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Review Message": {
+      "main": [
+        [
+          {
+            "node": "Send Review Message (Mock Telegram)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Sender Notice": {
+      "main": [
+        [
+          {
+            "node": "Notify Sender (Mock Telegram)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Callback": {
+      "main": [
+        [
+          {
+            "node": "Reason Callback?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Confirm + Callback",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Reason Callback?": {
+      "main": [
+        [
+          {
+            "node": "Build Apply Call",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Approve?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approve?": {
+      "main": [
+        [
+          {
+            "node": "Build Reason Keyboard (Approve)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reject?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Reason Keyboard (Approve)": {
+      "main": [
+        [
+          {
+            "node": "Send Approve Reasons (Mock)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reject?": {
+      "main": [
+        [
+          {
+            "node": "Build Reason Keyboard (Reject)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build Apply Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Reason Keyboard (Reject)": {
+      "main": [
+        [
+          {
+            "node": "Send Reject Reasons (Mock)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Apply Call": {
+      "main": [
+        [
+          {
+            "node": "Call Engine (Apply)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Engine (Apply)": {
+      "main": [
+        [
+          {
+            "node": "Merge Confirm + Callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Confirm + Callback": {
+      "main": [
+        [
+          {
+            "node": "Send Confirmation (Mock Telegram)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Confirmation (Mock Telegram)": {
+      "main": [
+        [
+          {
+            "node": "Submitter Notice?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submitter Notice?": {
+      "main": [
+        [
+          {
+            "node": "Notify Submitter (Mock Telegram)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "n8n_target_version": "2.48.7",
+    "note": "One Telegram entry (photos -> intake, callbacks -> review). Never writes Sheets: all state changes go through the Matching Engine webhook. Review requests go to the reviewer only; the sender gets outcome notices."
+  }
+}

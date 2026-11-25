@@ -1,0 +1,1724 @@
+{
+  "name": "Invoice Matching Engine (Sample 3)",
+  "nodes": [
+    {
+      "id": "webhook",
+      "name": "Engine Webhook",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "invoice-matching",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2
+    },
+    {
+      "id": "manual",
+      "name": "Manual Revalidate",
+      "parameters": {},
+      "position": [
+        0,
+        480
+      ],
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1
+    },
+    {
+      "id": "parse",
+      "name": "Parse Engine Call",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "\nconst it = $input.first().json;\nconst root = it.body || it;\nreturn [{ json: { mode: root.mode || '', invoice: root.invoice || null, lines: root.lines || [],\n  decision: root.decision || null, invoice_id: root.invoice_id || '', invoice_ids: root.invoice_ids || [],\n  requested_by: root.requested_by || '' } }];\n"
+      },
+      "position": [
+        220,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "read-cand",
+      "name": "Read Invoices (Candidates)",
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/FILL_SHEETS_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Invoices",
+          "cachedResultName": "Invoices"
+        },
+        "options": {}
+      },
+      "position": [
+        220,
+        480
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2": {
+          "id": null,
+          "name": "Google Sheets — fill on import"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "agg-cand",
+      "name": "Aggregate Candidates",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nlet rows = [];\nif (items.length === 1 && Array.isArray(items[0].json.body)) {\n  rows = items[0].json.body;\n} else {\n  rows = items.map(i => i.json);\n}\nreturn [{ json: { Invoices: rows } }];\n"
+      },
+      "position": [
+        440,
+        480
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "filter-cand",
+      "name": "Filter Candidates",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "\nconst it = $input.first().json;\nconst invs = it.Invoices || [];\nconst ids = invs.filter(r => r.status === 'pending_receipt' || r.status === 'correction_required')\n  .map(r => r.invoice_id);\nif (ids.length === 0) return [];\nreturn [{ json: { mode: 'revalidate_batch', invoice_ids: ids, requested_by: 'manual' } }];\n"
+      },
+      "position": [
+        660,
+        480
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "read-0",
+      "name": "Read Vendors",
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/FILL_SHEETS_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Vendors",
+          "cachedResultName": "Vendors"
+        },
+        "options": {}
+      },
+      "position": [
+        880,
+        0
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2": {
+          "id": null,
+          "name": "Google Sheets — fill on import"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "agg-0",
+      "name": "Aggregate Vendors",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nlet rows = [];\nif (items.length === 1 && Array.isArray(items[0].json.body)) {\n  rows = items[0].json.body;\n} else {\n  rows = items.map(i => i.json);\n}\nreturn [{ json: { Vendors: rows } }];\n"
+      },
+      "position": [
+        1100,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "read-1",
+      "name": "Read PO_Lines",
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/FILL_SHEETS_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "PO_Lines",
+          "cachedResultName": "PO_Lines"
+        },
+        "options": {}
+      },
+      "position": [
+        1320,
+        0
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2": {
+          "id": null,
+          "name": "Google Sheets — fill on import"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "agg-1",
+      "name": "Aggregate PO_Lines",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nlet rows = [];\nif (items.length === 1 && Array.isArray(items[0].json.body)) {\n  rows = items[0].json.body;\n} else {\n  rows = items.map(i => i.json);\n}\nreturn [{ json: { PO_Lines: rows } }];\n"
+      },
+      "position": [
+        1540,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "read-2",
+      "name": "Read Receipt_Lines",
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/FILL_SHEETS_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Receipt_Lines",
+          "cachedResultName": "Receipt_Lines"
+        },
+        "options": {}
+      },
+      "position": [
+        1760,
+        0
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2": {
+          "id": null,
+          "name": "Google Sheets — fill on import"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "agg-2",
+      "name": "Aggregate Receipt_Lines",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nlet rows = [];\nif (items.length === 1 && Array.isArray(items[0].json.body)) {\n  rows = items[0].json.body;\n} else {\n  rows = items.map(i => i.json);\n}\nreturn [{ json: { Receipt_Lines: rows } }];\n"
+      },
+      "position": [
+        1980,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "read-3",
+      "name": "Read Invoices",
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/FILL_SHEETS_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Invoices",
+          "cachedResultName": "Invoices"
+        },
+        "options": {}
+      },
+      "position": [
+        2200,
+        0
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2": {
+          "id": null,
+          "name": "Google Sheets — fill on import"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "agg-3",
+      "name": "Aggregate Invoices",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nlet rows = [];\nif (items.length === 1 && Array.isArray(items[0].json.body)) {\n  rows = items[0].json.body;\n} else {\n  rows = items.map(i => i.json);\n}\nreturn [{ json: { Invoices: rows } }];\n"
+      },
+      "position": [
+        2420,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "read-4",
+      "name": "Read Invoice_Lines",
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/FILL_SHEETS_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Invoice_Lines",
+          "cachedResultName": "Invoice_Lines"
+        },
+        "options": {}
+      },
+      "position": [
+        2640,
+        0
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2": {
+          "id": null,
+          "name": "Google Sheets — fill on import"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "agg-4",
+      "name": "Aggregate Invoice_Lines",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nlet rows = [];\nif (items.length === 1 && Array.isArray(items[0].json.body)) {\n  rows = items[0].json.body;\n} else {\n  rows = items.map(i => i.json);\n}\nreturn [{ json: { Invoice_Lines: rows } }];\n"
+      },
+      "position": [
+        2860,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "read-5",
+      "name": "Read Allocations",
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/FILL_SHEETS_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Allocations",
+          "cachedResultName": "Allocations"
+        },
+        "options": {}
+      },
+      "position": [
+        3080,
+        0
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2": {
+          "id": null,
+          "name": "Google Sheets — fill on import"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "agg-5",
+      "name": "Aggregate Allocations",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const items = $input.all();\nlet rows = [];\nif (items.length === 1 && Array.isArray(items[0].json.body)) {\n  rows = items[0].json.body;\n} else {\n  rows = items.map(i => i.json);\n}\nreturn [{ json: { Allocations: rows } }];\n"
+      },
+      "position": [
+        3300,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "mg-1",
+      "name": "Merge Vendors+PO",
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 2,
+        "options": {}
+      },
+      "position": [
+        1540,
+        160
+      ],
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3
+    },
+    {
+      "id": "mg-2",
+      "name": "Merge +Receipts",
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 2,
+        "options": {}
+      },
+      "position": [
+        1980,
+        160
+      ],
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3
+    },
+    {
+      "id": "mg-3",
+      "name": "Merge +Invoices",
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 2,
+        "options": {}
+      },
+      "position": [
+        2420,
+        160
+      ],
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3
+    },
+    {
+      "id": "mg-4",
+      "name": "Merge +Lines",
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 2,
+        "options": {}
+      },
+      "position": [
+        2860,
+        160
+      ],
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3
+    },
+    {
+      "id": "mg-5",
+      "name": "Merge +Allocations",
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 2,
+        "options": {}
+      },
+      "position": [
+        3300,
+        160
+      ],
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3
+    },
+    {
+      "id": "mg-6",
+      "name": "Merge Engine Input",
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 2,
+        "options": {}
+      },
+      "position": [
+        3520,
+        160
+      ],
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3
+    },
+    {
+      "id": "engine",
+      "name": "Matching Engine",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "\n// Invoice Matching Engine — mode: match | apply_exception | revalidate\n// Input (one item): { mode, invoice?, lines?, decision?, invoice_id?,\n//   Vendors, PO_Lines, Receipt_Lines, Invoices, Invoice_Lines, Allocations }\n// Output (one item): { ok, mode, invoice_id, status, reason_code, version,\n//   invoice_row, lines_rows, allocation_rows, audit_rows, summary, confirm }\nconst PRICE_REVIEW_MAX_PT = 5000;\nconst REVIEWER_ID = \"FILL_REVIEWER_TELEGRAM_ID\";\nconst inp = $input.first().json;\nconst mode = inp.mode;\nconst vendors = inp.Vendors || [];\nconst poLines = inp.PO_Lines || [];\nconst receipts = inp.Receipt_Lines || [];\nconst invoices = inp.Invoices || [];\nconst invLines = inp.Invoice_Lines || [];\nconst allocs = inp.Allocations || [];\nlet _seq = 0;\nfunction nowISO(){ return new Date().toISOString(); }\nfunction uid(p){ _seq += 1; return p + '-' + Date.now().toString(36) + '-' + _seq; }\nfunction num(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }\nfunction taxFor(lineTotalPt, ratePct){ return Math.round(lineTotalPt * ratePct / 100); }\nfunction findPO(id){ return poLines.find(r => r.po_line_id === id); }\nfunction activeReceipts(poLineId){ return receipts.filter(r => r.po_line_id === poLineId && r.status === 'active'); }\nfunction activeAllocs(poLineId){ return allocs.filter(r => r.po_line_id === poLineId && r.status === 'active'); }\nfunction availableReceived(poLineId){\n  const rec = activeReceipts(poLineId).reduce((s,r)=>s+num(r.qty_accepted),0);\n  const alc = activeAllocs(poLineId).reduce((s,r)=>s+num(r.qty),0);\n  return rec - alc;\n}\nfunction alreadyInvoiced(poLineId){ return activeAllocs(poLineId).reduce((s,r)=>s+num(r.qty),0); }\nfunction auditRow(invoiceId, oldStatus, newStatus, reason, decidedBy, note){\n  return { audit_id: uid('AUD'), invoice_id: invoiceId, old_status: oldStatus || '', new_status: newStatus || '',\n           reason_code: reason || '', decided_by: decidedBy || '', note: note || '', created_at: nowISO() };\n}\nfunction resolveVendor(invoice){\n  if (invoice.vendor_id){\n    const v = vendors.find(r => r.vendor_id === invoice.vendor_id);\n    if (v && v.status === 'active') return v.vendor_id;\n    return null;\n  }\n  if (invoice.vendor_tax_id){\n    const v = vendors.find(r => r.tax_id === invoice.vendor_tax_id);\n    if (v && v.status === 'active') return v.vendor_id;\n  }\n  return null;\n}\nfunction groupQty(lines){\n  const byPo = {};\n  for (const ln of lines){ byPo[ln.po_line_id] = (byPo[ln.po_line_id] || 0) + num(ln.qty); }\n  return byPo;\n}\n// --- 7 stages. Returns {status, reason_code, allocations?} (first failure wins,\n// except price-review (D soft) is held so a later blocked stage can override it).\nfunction runStages(invoice, lines){\n  // Stage A — document validation\n  if (!invoice.vendor_invoice_number || !invoice.invoice_date ||\n      invoice.subtotal_pt === undefined || invoice.tax_pt === undefined || invoice.total_pt === undefined)\n    return { status: 'needs_review', reason_code: 'missing_field' };\n  if (!lines || lines.length === 0)\n    return { status: 'needs_review', reason_code: 'missing_field' };\n  for (const ln of lines){\n    if (ln.qty === undefined || ln.unit_price_pt === undefined || ln.line_total_pt === undefined || !ln.sku)\n      return { status: 'needs_review', reason_code: 'missing_field' };\n    if (num(ln.line_total_pt) !== num(ln.qty) * num(ln.unit_price_pt))\n      return { status: 'needs_review', reason_code: 'arithmetic_mismatch' };\n  }\n  const subtotal = lines.reduce((s,l)=>s+num(l.line_total_pt),0);\n  if (subtotal !== num(invoice.subtotal_pt)) return { status: 'needs_review', reason_code: 'arithmetic_mismatch' };\n  if (subtotal + num(invoice.tax_pt) !== num(invoice.total_pt)) return { status: 'needs_review', reason_code: 'arithmetic_mismatch' };\n  // Stages B+C — identity + line binding (per line)\n  const vendorId = resolveVendor(invoice);\n  if (!vendorId) return { status: 'blocked', reason_code: 'vendor_mismatch' };\n  for (const ln of lines){\n    if (!ln.po_line_id) return { status: 'needs_review', reason_code: 'line_unmatched' };\n    const po = findPO(ln.po_line_id);\n    if (!po) return { status: 'blocked', reason_code: 'unknown_po' };\n    if (po.vendor_id !== vendorId) return { status: 'blocked', reason_code: 'vendor_mismatch' };\n    if (po.status !== 'open') return { status: 'blocked', reason_code: 'po_closed' };\n    if (ln.sku !== po.sku) return { status: 'blocked', reason_code: 'unknown_sku' };\n  }\n  // Stage D — price (hard fail over cap; soft flag under cap)\n  let sumVar = 0;\n  for (const ln of lines){\n    const po = findPO(ln.po_line_id);\n    const v = num(ln.qty) * Math.abs(num(ln.unit_price_pt) - num(po.unit_price_piastres));\n    if (v > PRICE_REVIEW_MAX_PT) return { status: 'blocked', reason_code: 'price_variance_blocked' };\n    sumVar += v;\n  }\n  if (sumVar > PRICE_REVIEW_MAX_PT) return { status: 'blocked', reason_code: 'price_variance_blocked' };\n  const priceReview = sumVar > 0;\n  // Stage E — quantity (cumulative consumption)\n  const byPo = groupQty(lines);\n  for (const pl of Object.keys(byPo)){\n    const po = findPO(pl);\n    const received = activeReceipts(pl).reduce((s,r)=>s+num(r.qty_accepted),0);\n    if (received === 0) return { status: 'pending_receipt', reason_code: 'missing_receipt' };\n    if (byPo[pl] > availableReceived(pl)) return { status: 'blocked', reason_code: 'insufficient_received' };\n    if (alreadyInvoiced(pl) + byPo[pl] > num(po.qty_ordered)) return { status: 'blocked', reason_code: 'over_po_quantity' };\n  }\n  // Allocations are determined by quantity availability (Stage E), not by\n  // price: a price-review invoice carries its would-be allocations so the\n  // apply path can consume them on approval. Match/revalidate only WRITE\n  // them when the outcome is auto_matched.\n  const allocations = Object.keys(byPo).map(pl => ({ allocation_id: uid('ALC'), invoice_id: invoice.invoice_id,\n    po_line_id: pl, qty: byPo[pl], status: 'active', created_at: nowISO() }));\n  // Stage F — financial validation (tax recomputed from PO rules). Runs\n  // BEFORE any price-review outcome is returned: a tax mismatch is a\n  // non-overridable block, so a combined price-variance + tax-mismatch\n  // invoice must be blocked, never reviewable. (Round-4 fix: the\n  // price-review return used to sit here, before Stage F, and a\n  // within-cap variance short-circuited tax validation entirely.)\n  let taxSum = 0;\n  for (const ln of lines){\n    const po = findPO(ln.po_line_id);\n    taxSum += taxFor(num(ln.line_total_pt), num(po.tax_rate_pct));\n  }\n  if (taxSum !== num(invoice.tax_pt)) return { status: 'blocked', reason_code: 'tax_mismatch' };\n  if (priceReview) return { status: 'needs_review', reason_code: 'price_variance_review', allocations };\n  // Stage G — decision\n  const exact = Object.keys(byPo).every(pl => byPo[pl] === availableReceived(pl));\n  return { status: 'auto_matched', reason_code: exact ? 'exact_match' : 'partial_match', allocations };\n}\nfunction invoiceRowFor(invoice, vendorId, status, reason, version, reviewId){\n  return { invoice_id: invoice.invoice_id, vendor_id: vendorId, vendor_invoice_number: invoice.vendor_invoice_number,\n    document_hash: invoice.document_hash || '', status, reason_code: reason, version,\n    current_review_id: reviewId || '', submitter_id: invoice.submitter_id || '',\n    subtotal_piastres: num(invoice.subtotal_pt), tax_piastres: num(invoice.tax_pt), total_piastres: num(invoice.total_pt),\n    created_at: invoice.created_at || nowISO(), updated_at: nowISO() };\n}\nfunction linesRowsFor(invoiceId, lines){\n  return lines.map((ln, i) => ({ invoice_id: invoiceId, line_no: i + 1, po_line_id: ln.po_line_id || '',\n    sku: ln.sku || '', qty: num(ln.qty), unit_price_piastres: num(ln.unit_price_pt),\n    line_total_piastres: num(ln.line_total_pt), tax_piastres: 0 }));\n}\nfunction out(o){ return [{ json: o }]; }\n\nif (mode === 'match'){\n  const invoice = inp.invoice || {};\n  const lines = inp.lines || [];\n  // Stage 0 — document hash duplicate (before persisting anything)\n  const dup = (invoice.document_hash && invoices.find(r => r.document_hash && r.document_hash === invoice.document_hash)) || null;\n  if (dup){\n    return out({ ok: true, mode, outcome: 'duplicate_image', invoice_id: dup.invoice_id, status: 'duplicate_image',\n      reason_code: 'duplicate_image', version: dup.version, no_new_row: true, invoice_row: null, lines_rows: [], allocation_rows: [],\n      audit_rows: [auditRow(dup.invoice_id, dup.status, dup.status, 'duplicate_image', invoice.submitter_id || '', 'same document hash resubmitted')],\n      summary: { status: 'duplicate_image', reason_code: 'duplicate_image', text: 'This document was already submitted.' } });\n  }\n  const vendorId = resolveVendor(invoice);\n  const invoiceId = 'INV-' + String(invoice.document_hash || 'nohash').slice(0, 8);\n  invoice.invoice_id = invoiceId;\n  if (!vendorId){\n    const row = invoiceRowFor(invoice, '', 'blocked', 'vendor_mismatch', 1, '');\n    return out({ ok: true, mode, outcome: 'blocked', invoice_id: invoiceId, status: 'blocked', reason_code: 'vendor_mismatch',\n      version: 1, invoice_row: row, lines_rows: linesRowsFor(invoiceId, lines), allocation_rows: [],\n      audit_rows: [auditRow(invoiceId, 'received', 'blocked', 'vendor_mismatch', invoice.submitter_id || '', 'vendor could not be resolved against the vendor master')],\n      summary: { status: 'blocked', reason_code: 'vendor_mismatch', text: 'Vendor not recognised.' } });\n  }\n  const dupNum = invoices.find(r => r.vendor_id === vendorId && r.vendor_invoice_number === invoice.vendor_invoice_number);\n  if (dupNum){\n    const row = invoiceRowFor(invoice, vendorId, 'blocked', 'duplicate_invoice', 1, '');\n    return out({ ok: true, mode, outcome: 'blocked', invoice_id: invoiceId, status: 'blocked', reason_code: 'duplicate_invoice',\n      version: 1, invoice_row: row, lines_rows: linesRowsFor(invoiceId, lines), allocation_rows: [],\n      audit_rows: [auditRow(invoiceId, 'received', 'blocked', 'duplicate_invoice', invoice.submitter_id || '', 'same vendor + invoice number already exists as ' + dupNum.invoice_id)],\n      summary: { status: 'blocked', reason_code: 'duplicate_invoice', text: 'Duplicate invoice number for this vendor.' } });\n  }\n  const res = runStages(invoice, lines);\n  const reviewId = res.status === 'needs_review' ? ('REV-' + invoiceId + '-v1') : '';\n  const row = invoiceRowFor(invoice, vendorId, res.status, res.reason_code, 1, reviewId);\n  const allocsOut = res.status === 'auto_matched' ? (res.allocations || []) : [];\n  return out({ ok: true, mode, outcome: res.status, invoice_id: invoiceId, status: res.status, reason_code: res.reason_code,\n    version: 1, invoice_row: row, lines_rows: linesRowsFor(invoiceId, lines), allocation_rows: allocsOut,\n    audit_rows: [auditRow(invoiceId, 'received', res.status, res.reason_code, invoice.submitter_id || '', '')],\n    summary: { status: res.status, reason_code: res.reason_code, text: res.status + ' / ' + res.reason_code } });\n}\n\nif (mode === 'apply_exception'){\n  const d = inp.decision || {};\n  const inv = invoices.find(r => r.invoice_id === d.invoice_id);\n  if (!inv){\n    return out({ ok: false, mode, outcome: 'review_blocked_notfound', invoice_id: d.invoice_id || '', status: '', reason_code: 'review_blocked_notfound',\n      version: 0, invoice_row: null, lines_rows: [], allocation_rows: [],\n      audit_rows: [auditRow(d.invoice_id || '', '', '', 'review_blocked_notfound', d.from_id || '', 'invoice not found')],\n      summary: { status: 'blocked', reason_code: 'review_blocked_notfound', text: 'Invoice not found.' } });\n  }\n  const oldStatus = inv.status;\n  const block = (reason, note) => out({ ok: false, mode, outcome: reason, invoice_id: inv.invoice_id, status: oldStatus,\n    reason_code: reason, version: num(inv.version), invoice_row: null, lines_rows: [], allocation_rows: [],\n    audit_rows: [auditRow(inv.invoice_id, oldStatus, oldStatus, reason, d.from_id || '', note || '')],\n    summary: { status: 'blocked', reason_code: reason, text: 'Decision blocked: ' + reason } });\n  // Check order: stale -> submitter -> auth -> repeat -> approvable.\n  // (Submitter before auth: the submitter is never the reviewer, so the\n  // auth check alone would mask the conflict-of-interest reason.)\n  if (num(d.version) !== num(inv.version) || String(d.review_id || '') !== String(inv.current_review_id || ''))\n    return block('review_blocked_stale', 'decision refers to version ' + d.version + ' / ' + d.review_id + ', current is v' + inv.version + ' / ' + inv.current_review_id);\n  if (String(d.from_id || '') === String(inv.submitter_id || '') && String(inv.submitter_id || '') !== '')\n    return block('review_blocked_submitter', 'submitter cannot approve their own invoice');\n  if (String(d.from_id || '') !== REVIEWER_ID)\n    return block('review_blocked_auth', 'decider ' + d.from_id + ' is not the authorised reviewer');\n  if (oldStatus !== 'needs_review')\n    return block('review_blocked_repeat', 'invoice is already ' + oldStatus);\n  if (d.action === 'approve' && inv.reason_code !== 'price_variance_review')\n    return block('review_blocked_not_approvable', 'reason ' + inv.reason_code + ' is not an approvable exception');\n  if (d.action === 'approve'){\n    // Re-run critical invariants at commit time (identity + quantity on current state)\n    const storedLines = invLines.filter(r => r.invoice_id === inv.invoice_id);\n    const checkInvoice = { vendor_id: inv.vendor_id, vendor_invoice_number: inv.vendor_invoice_number,\n      invoice_date: '2026-11-22', subtotal_pt: num(inv.subtotal_piastres), tax_pt: num(inv.tax_piastres),\n      total_pt: num(inv.total_piastres), invoice_id: inv.invoice_id };\n    const checkLines = storedLines.map(r => ({ po_line_id: r.po_line_id, sku: r.sku, qty: num(r.qty),\n      unit_price_pt: num(r.unit_price_piastres), line_total_pt: num(r.line_total_piastres) }));\n    const re = runStages(checkInvoice, checkLines);\n    if (re.status === 'blocked')\n      return block(re.reason_code, 'revalidation at commit time failed: ' + re.reason_code);\n    if (re.status !== 'needs_review' || re.reason_code !== 'price_variance_review')\n      return block('review_blocked_not_approvable', 'revalidation no longer yields an approvable exception (' + re.status + '/' + re.reason_code + ')');\n    const allocsOut = re.allocations || [];\n    const row = Object.assign({}, inv, { status: 'exception_approved', reason_code: 'manual_approve', updated_at: nowISO() });\n    return out({ ok: true, mode, outcome: 'exception_approved', invoice_id: inv.invoice_id, status: 'exception_approved',\n      reason_code: 'manual_approve', version: num(inv.version), invoice_row: row, lines_rows: [], allocation_rows: allocsOut,\n      audit_rows: [auditRow(inv.invoice_id, oldStatus, 'exception_approved', 'manual_approve', d.from_id || '', d.reason_key || '')],\n      summary: { status: 'exception_approved', reason_code: 'manual_approve', text: 'Exception approved.' },\n      confirm: { chat_id: inv.submitter_id, text: 'Invoice ' + inv.vendor_invoice_number + ' approved as an exception (price variance within EGP 50).' } });\n  }\n  if (d.action === 'reject'){\n    const row = Object.assign({}, inv, { status: 'rejected', reason_code: 'manual_reject', updated_at: nowISO() });\n    return out({ ok: true, mode, outcome: 'rejected', invoice_id: inv.invoice_id, status: 'rejected', reason_code: 'manual_reject',\n      version: num(inv.version), invoice_row: row, lines_rows: [], allocation_rows: [],\n      audit_rows: [auditRow(inv.invoice_id, oldStatus, 'rejected', 'manual_reject', d.from_id || '', d.reason_key || '')],\n      summary: { status: 'rejected', reason_code: 'manual_reject', text: 'Rejected by reviewer.' },\n      confirm: { chat_id: inv.submitter_id, text: 'Invoice ' + inv.vendor_invoice_number + ' was rejected by the reviewer.' } });\n  }\n  if (d.action === 'correction'){\n    const storedLines = invLines.filter(r => r.invoice_id === inv.invoice_id);\n    const snapshot = 'pre-correction v' + num(inv.version) + ' values: subtotal=' + inv.subtotal_piastres +\n      ' tax=' + inv.tax_piastres + ' total=' + inv.total_piastres + ' lines=' +\n      JSON.stringify(storedLines.map(l => [l.po_line_id, l.qty, l.unit_price_piastres, l.line_total_piastres]));\n    const row = Object.assign({}, inv, { status: 'correction_required', reason_code: 'correction_requested', updated_at: nowISO() });\n    return out({ ok: true, mode, outcome: 'correction_required', invoice_id: inv.invoice_id, status: 'correction_required',\n      reason_code: 'correction_requested', version: num(inv.version), invoice_row: row, lines_rows: [], allocation_rows: [],\n      audit_rows: [auditRow(inv.invoice_id, oldStatus, 'correction_required', 'correction_requested', d.from_id || '', (d.reason_key ? d.reason_key + ' | ' : '') + snapshot)],\n      summary: { status: 'correction_required', reason_code: 'correction_requested', text: 'Correction requested.' },\n      confirm: { chat_id: inv.submitter_id, text: 'Invoice ' + inv.vendor_invoice_number + ' needs correction. Fix the values in the sheet, then revalidate.' } });\n  }\n  // defer\n  return out({ ok: true, mode, outcome: 'deferred', invoice_id: inv.invoice_id, status: oldStatus, reason_code: 'review_deferred',\n    version: num(inv.version), invoice_row: null, lines_rows: [], allocation_rows: [],\n    audit_rows: [auditRow(inv.invoice_id, oldStatus, oldStatus, 'review_deferred', d.from_id || '', d.reason_key || '')],\n    summary: { status: oldStatus, reason_code: 'review_deferred', text: 'Review deferred.' } });\n}\n\nfunction revalidateOne(invId, requestedBy){\n  const inv = invoices.find(r => r.invoice_id === invId);\n  if (!inv){\n    return { ok: false, outcome: 'review_blocked_notfound', invoice_id: invId || '', status: '', reason_code: 'review_blocked_notfound',\n      version: 0, invoice_row: null, lines_rows: [], allocation_rows: [], audit_rows: [],\n      summary: { status: 'blocked', reason_code: 'review_blocked_notfound', text: 'Invoice not found.' } };\n  }\n  const oldStatus = inv.status;\n  if (oldStatus !== 'pending_receipt' && oldStatus !== 'correction_required'){\n    return { ok: false, outcome: 'nothing_to_revalidate', invoice_id: inv.invoice_id, status: oldStatus,\n      reason_code: 'nothing_to_revalidate', version: num(inv.version), invoice_row: null, lines_rows: [], allocation_rows: [], audit_rows: [],\n      summary: { status: oldStatus, reason_code: 'nothing_to_revalidate', text: 'Invoice is ' + oldStatus + '; nothing to revalidate.' } };\n  }\n  const auditRows = [];\n  let version = num(inv.version);\n  if (oldStatus === 'correction_required'){\n    // The previous version's values were snapshotted in the\n    // correction_requested audit event (written before the operator edited\n    // anything). Accepting the new version just references that snapshot.\n    auditRows.push(auditRow(inv.invoice_id, oldStatus, oldStatus, 'correction_accepted', requestedBy || '',\n      'accepted version v' + (version + 1) + ' (pre-correction values preserved in the correction_requested audit event)'));\n    version = version + 1;\n  }\n  const storedLines = invLines.filter(r => r.invoice_id === inv.invoice_id);\n  const checkInvoice = { vendor_id: inv.vendor_id, vendor_invoice_number: inv.vendor_invoice_number,\n    invoice_date: '2026-11-22', subtotal_pt: num(inv.subtotal_piastres), tax_pt: num(inv.tax_piastres),\n    total_pt: num(inv.total_piastres), invoice_id: inv.invoice_id };\n  const checkLines = storedLines.map(r => ({ po_line_id: r.po_line_id, sku: r.sku, qty: num(r.qty),\n    unit_price_pt: num(r.unit_price_piastres), line_total_pt: num(r.line_total_piastres) }));\n  const res = runStages(checkInvoice, checkLines);\n  const reviewId = res.status === 'needs_review' ? ('REV-' + inv.invoice_id + '-v' + version) : '';\n  const row = Object.assign({}, inv, { status: res.status, reason_code: res.reason_code, version, current_review_id: reviewId, updated_at: nowISO() });\n  auditRows.push(auditRow(inv.invoice_id, oldStatus, res.status, res.reason_code, requestedBy || '', 'revalidation (v' + version + ')'));\n  return { ok: true, outcome: res.status, invoice_id: inv.invoice_id, status: res.status, reason_code: res.reason_code,\n    version, invoice_row: row, lines_rows: [], allocation_rows: res.status === 'auto_matched' ? (res.allocations || []) : [], audit_rows: auditRows,\n    summary: { status: res.status, reason_code: res.reason_code, text: 'Revalidated: ' + res.status + ' / ' + res.reason_code } };\n}\n\nif (mode === 'revalidate'){\n  return out(Object.assign({ mode }, revalidateOne(inp.invoice_id, inp.requested_by)));\n}\n\nif (mode === 'revalidate_batch'){\n  const ids = inp.invoice_ids || [];\n  const invoiceRows = [], allocRows = [], auditRows = [], summaries = [];\n  for (const id of ids){\n    const r = revalidateOne(id, inp.requested_by);\n    if (r.invoice_row) invoiceRows.push(r.invoice_row);\n    allocRows.push(...(r.allocation_rows || []));\n    auditRows.push(...(r.audit_rows || []));\n    summaries.push({ invoice_id: id, status: r.status, reason_code: r.reason_code });\n  }\n  return out({ ok: true, mode, outcome: 'revalidate_batch', invoice_id: '', status: '', reason_code: '',\n    version: 0, invoice_row: null, invoice_rows: invoiceRows, lines_rows: [], allocation_rows: allocRows,\n    audit_rows: auditRows, summaries,\n    summary: { status: 'revalidate_batch', reason_code: '', text: 'Revalidated ' + ids.length + ' invoice(s).' } });\n}\n\nreturn out({ ok: false, mode, outcome: 'unknown_mode', invoice_id: '', status: '', reason_code: 'unknown_mode',\n  version: 0, invoice_row: null, lines_rows: [], allocation_rows: [], audit_rows: [],\n  summary: { status: 'error', reason_code: 'unknown_mode', text: 'Unknown engine mode: ' + mode } });\n"
+      },
+      "position": [
+        3740,
+        160
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "expand",
+      "name": "Expand Writes",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "\nconst it = $input.first().json;\nconst row = it.invoice_row || null;\nconst resp = { ok: it.ok !== false, mode: it.mode || '', outcome: it.outcome || '',\n  invoice_id: it.invoice_id || '', status: it.status || '', reason_code: it.reason_code || '',\n  version: it.version || 0,\n  current_review_id: row ? (row.current_review_id || '') : '',\n  vendor_invoice_number: row ? (row.vendor_invoice_number || '') : '',\n  vendor_id: row ? (row.vendor_id || '') : '',\n  total_piastres: row ? (row.total_piastres || 0) : 0,\n  submitter_id: row ? (row.submitter_id || '') : '',\n  summary_text: (it.summary && it.summary.text) || '', summaries: it.summaries || null,\n  confirm_text: (it.confirm && it.confirm.text) || '' };\nconst out = [];\nconst invRows = it.invoice_rows || (it.invoice_row ? [it.invoice_row] : []);\nfor (const r of invRows) out.push({ json: { sheet: 'Invoices', op: 'upsert', match_key: 'invoice_id', row: r, summary: it.summary || {}, resp, mode: it.mode || '', invoice_id: it.invoice_id || '' } });\nfor (const r of (it.lines_rows || [])) out.push({ json: { sheet: 'Invoice_Lines', op: 'append', row: r, summary: it.summary || {}, resp, mode: it.mode || '', invoice_id: it.invoice_id || '' } });\nfor (const r of (it.allocation_rows || [])) out.push({ json: { sheet: 'Allocations', op: 'append', row: r, summary: it.summary || {}, resp, mode: it.mode || '', invoice_id: it.invoice_id || '' } });\nfor (const r of (it.audit_rows || [])) out.push({ json: { sheet: 'Audit_Log', op: 'append', row: r, summary: it.summary || {}, resp, mode: it.mode || '', invoice_id: it.invoice_id || '' } });\nif (out.length === 0) out.push({ json: { sheet: 'none', op: 'none', row: {}, summary: it.summary || {}, resp, mode: it.mode || '', invoice_id: it.invoice_id || '' } });\nreturn out;\n"
+      },
+      "position": [
+        3960,
+        160
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "if-none",
+      "name": "Skip Empty Writes?",
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "cond-if-none-0",
+              "leftValue": "={{ $json.op }}",
+              "rightValue": "none",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.string.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true
+      },
+      "position": [
+        4180,
+        160
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "if-inv",
+      "name": "Invoice Write?",
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "cond-if-inv-0",
+              "leftValue": "={{ $json.sheet }}",
+              "rightValue": "Invoices",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.string.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true
+      },
+      "position": [
+        4400,
+        160
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "up-inv",
+      "name": "Upsert Invoice",
+      "parameters": {
+        "resource": "sheet",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/FILL_SHEETS_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Invoices",
+          "cachedResultName": "Invoices"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "invoice_id": "={{ $json.row.invoice_id }}",
+            "vendor_id": "={{ $json.row.vendor_id }}",
+            "vendor_invoice_number": "={{ $json.row.vendor_invoice_number }}",
+            "document_hash": "={{ $json.row.document_hash }}",
+            "status": "={{ $json.row.status }}",
+            "reason_code": "={{ $json.row.reason_code }}",
+            "version": "={{ $json.row.version }}",
+            "current_review_id": "={{ $json.row.current_review_id }}",
+            "submitter_id": "={{ $json.row.submitter_id }}",
+            "subtotal_piastres": "={{ $json.row.subtotal_piastres }}",
+            "tax_piastres": "={{ $json.row.tax_piastres }}",
+            "total_piastres": "={{ $json.row.total_piastres }}",
+            "created_at": "={{ $json.row.created_at }}",
+            "updated_at": "={{ $json.row.updated_at }}"
+          },
+          "matchingColumns": [
+            "invoice_id"
+          ],
+          "schema": [
+            {
+              "id": "invoice_id",
+              "displayName": "invoice_id",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "vendor_id",
+              "displayName": "vendor_id",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "vendor_invoice_number",
+              "displayName": "vendor_invoice_number",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "document_hash",
+              "displayName": "document_hash",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "reason_code",
+              "displayName": "reason_code",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "version",
+              "displayName": "version",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "current_review_id",
+              "displayName": "current_review_id",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "submitter_id",
+              "displayName": "submitter_id",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "subtotal_piastres",
+              "displayName": "subtotal_piastres",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tax_piastres",
+              "displayName": "tax_piastres",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "total_piastres",
+              "displayName": "total_piastres",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "position": [
+        4620,
+        0
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2": {
+          "id": null,
+          "name": "Google Sheets — fill on import"
+        }
+      }
+    },
+    {
+      "id": "if-lines",
+      "name": "Lines Write?",
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "cond-if-lines-0",
+              "leftValue": "={{ $json.sheet }}",
+              "rightValue": "Invoice_Lines",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.string.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true
+      },
+      "position": [
+        4400,
+        320
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "ap-lines",
+      "name": "Append Invoice Lines",
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/FILL_SHEETS_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Invoice_Lines",
+          "cachedResultName": "Invoice_Lines"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "invoice_id": "={{ $json.row.invoice_id }}",
+            "line_no": "={{ $json.row.line_no }}",
+            "po_line_id": "={{ $json.row.po_line_id }}",
+            "sku": "={{ $json.row.sku }}",
+            "qty": "={{ $json.row.qty }}",
+            "unit_price_piastres": "={{ $json.row.unit_price_piastres }}",
+            "line_total_piastres": "={{ $json.row.line_total_piastres }}",
+            "tax_piastres": "={{ $json.row.tax_piastres }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "invoice_id",
+              "displayName": "invoice_id",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "line_no",
+              "displayName": "line_no",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "po_line_id",
+              "displayName": "po_line_id",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sku",
+              "displayName": "sku",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "qty",
+              "displayName": "qty",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "unit_price_piastres",
+              "displayName": "unit_price_piastres",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "line_total_piastres",
+              "displayName": "line_total_piastres",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tax_piastres",
+              "displayName": "tax_piastres",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "position": [
+        4620,
+        320
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2": {
+          "id": null,
+          "name": "Google Sheets — fill on import"
+        }
+      }
+    },
+    {
+      "id": "if-alc",
+      "name": "Allocation Write?",
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "cond-if-alc-0",
+              "leftValue": "={{ $json.sheet }}",
+              "rightValue": "Allocations",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.string.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true
+      },
+      "position": [
+        4400,
+        480
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "id": "ap-alc",
+      "name": "Append Allocations",
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/FILL_SHEETS_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Allocations",
+          "cachedResultName": "Allocations"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "allocation_id": "={{ $json.row.allocation_id }}",
+            "invoice_id": "={{ $json.row.invoice_id }}",
+            "po_line_id": "={{ $json.row.po_line_id }}",
+            "qty": "={{ $json.row.qty }}",
+            "status": "={{ $json.row.status }}",
+            "created_at": "={{ $json.row.created_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "allocation_id",
+              "displayName": "allocation_id",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "invoice_id",
+              "displayName": "invoice_id",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "po_line_id",
+              "displayName": "po_line_id",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "qty",
+              "displayName": "qty",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "position": [
+        4620,
+        480
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2": {
+          "id": null,
+          "name": "Google Sheets — fill on import"
+        }
+      }
+    },
+    {
+      "id": "ap-audit",
+      "name": "Append Audit",
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "https://docs.google.com/spreadsheets/d/FILL_SHEETS_ID/edit"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "Audit_Log",
+          "cachedResultName": "Audit_Log"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "audit_id": "={{ $json.row.audit_id }}",
+            "invoice_id": "={{ $json.row.invoice_id }}",
+            "old_status": "={{ $json.row.old_status }}",
+            "new_status": "={{ $json.row.new_status }}",
+            "reason_code": "={{ $json.row.reason_code }}",
+            "decided_by": "={{ $json.row.decided_by }}",
+            "note": "={{ $json.row.note }}",
+            "created_at": "={{ $json.row.created_at }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "audit_id",
+              "displayName": "audit_id",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "invoice_id",
+              "displayName": "invoice_id",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "old_status",
+              "displayName": "old_status",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "new_status",
+              "displayName": "new_status",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "reason_code",
+              "displayName": "reason_code",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "decided_by",
+              "displayName": "decided_by",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "note",
+              "displayName": "note",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "position": [
+        4620,
+        640
+      ],
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "credentials": {
+        "googleSheetsOAuth2": {
+          "id": null,
+          "name": "Google Sheets — fill on import"
+        }
+      }
+    },
+    {
+      "id": "collect",
+      "name": "Collect Writes",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "\n// Every incoming item is a write result (mock HTTP response, Sheets row,\n// or the no-op passthrough). A failed write must fail the execution\n// visibly -- never report success. Failure shapes: {error} (continueOnFail\n// connection failure), {statusCode >= 400} (mock HTTP error response),\n// {ok: false} / {body: {ok: false}} (mock error body).\nconst items = $input.all();\nfor (const it of items){\n  const j = (it && it.json) || {};\n  const bodyOk = (j.body && typeof j.body === 'object') ? j.body.ok : undefined;\n  if (j.error || (typeof j.statusCode === 'number' && j.statusCode >= 400) || j.ok === false || bodyOk === false)\n    throw new Error('Write failed: ' + JSON.stringify(j).slice(0, 300));\n}\nreturn [{ json: { writes: items.length, ok: true } }];\n"
+      },
+      "position": [
+        4730,
+        320
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "mg-out",
+      "name": "Merge Engine Output",
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 2,
+        "options": {}
+      },
+      "position": [
+        4950,
+        320
+      ],
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3
+    },
+    {
+      "id": "response",
+      "name": "Build Response",
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "\nconst it = $input.first().json;\nconst row = it.invoice_row || null;\nconst s = it.summary || {};\nreturn [{ json: {\n  ok: it.ok !== false, mode: it.mode || '', outcome: it.outcome || '',\n  invoice_id: it.invoice_id || '', status: it.status || '', reason_code: it.reason_code || '',\n  version: it.version || 0,\n  current_review_id: row ? (row.current_review_id || '') : '',\n  vendor_invoice_number: row ? (row.vendor_invoice_number || '') : '',\n  vendor_id: row ? (row.vendor_id || '') : '',\n  total_piastres: row ? (row.total_piastres || 0) : 0,\n  submitter_id: row ? (row.submitter_id || '') : '',\n  summary_text: s.text || '', summaries: it.summaries || null,\n  confirm_text: (it.confirm && it.confirm.text) || '' } }];\n"
+      },
+      "position": [
+        5170,
+        160
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "respond",
+      "name": "Respond to Webhook",
+      "parameters": {
+        "respondWith": "firstIncomingItem",
+        "options": {}
+      },
+      "position": [
+        5390,
+        160
+      ],
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4
+    }
+  ],
+  "connections": {
+    "Engine Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Engine Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Revalidate": {
+      "main": [
+        [
+          {
+            "node": "Read Invoices (Candidates)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Invoices (Candidates)": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Candidates": {
+      "main": [
+        [
+          {
+            "node": "Filter Candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Candidates": {
+      "main": [
+        [
+          {
+            "node": "Read Vendors",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Engine Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Engine Call": {
+      "main": [
+        [
+          {
+            "node": "Read Vendors",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Engine Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Vendors": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Vendors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Vendors": {
+      "main": [
+        [
+          {
+            "node": "Read PO_Lines",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Vendors+PO",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Read PO_Lines": {
+      "main": [
+        [
+          {
+            "node": "Aggregate PO_Lines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate PO_Lines": {
+      "main": [
+        [
+          {
+            "node": "Read Receipt_Lines",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Vendors+PO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Receipt_Lines": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Receipt_Lines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Receipt_Lines": {
+      "main": [
+        [
+          {
+            "node": "Read Invoices",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge +Receipts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Invoices": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Invoices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Invoices": {
+      "main": [
+        [
+          {
+            "node": "Read Invoice_Lines",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge +Invoices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Invoice_Lines": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Invoice_Lines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Invoice_Lines": {
+      "main": [
+        [
+          {
+            "node": "Read Allocations",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge +Lines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Allocations": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Allocations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Vendors+PO": {
+      "main": [
+        [
+          {
+            "node": "Merge +Receipts",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge +Receipts": {
+      "main": [
+        [
+          {
+            "node": "Merge +Invoices",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge +Invoices": {
+      "main": [
+        [
+          {
+            "node": "Merge +Lines",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge +Lines": {
+      "main": [
+        [
+          {
+            "node": "Merge +Allocations",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Aggregate Allocations": {
+      "main": [
+        [
+          {
+            "node": "Merge +Allocations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge +Allocations": {
+      "main": [
+        [
+          {
+            "node": "Merge Engine Input",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Engine Input": {
+      "main": [
+        [
+          {
+            "node": "Matching Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Matching Engine": {
+      "main": [
+        [
+          {
+            "node": "Expand Writes",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge Engine Output",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Expand Writes": {
+      "main": [
+        [
+          {
+            "node": "Skip Empty Writes?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Empty Writes?": {
+      "main": [
+        [
+          {
+            "node": "Collect Writes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invoice Write?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invoice Write?": {
+      "main": [
+        [
+          {
+            "node": "Upsert Invoice",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Lines Write?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Invoice": {
+      "main": [
+        [
+          {
+            "node": "Collect Writes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lines Write?": {
+      "main": [
+        [
+          {
+            "node": "Append Invoice Lines",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Allocation Write?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Invoice Lines": {
+      "main": [
+        [
+          {
+            "node": "Collect Writes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Allocation Write?": {
+      "main": [
+        [
+          {
+            "node": "Append Allocations",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append Audit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Allocations": {
+      "main": [
+        [
+          {
+            "node": "Collect Writes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append Audit": {
+      "main": [
+        [
+          {
+            "node": "Collect Writes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Writes": {
+      "main": [
+        [
+          {
+            "node": "Merge Engine Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Engine Output": {
+      "main": [
+        [
+          {
+            "node": "Build Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "n8n_target_version": "2.48.7",
+    "note": "Deterministic 3-way matching engine. Webhook modes: match / apply_exception / revalidate / revalidate_batch. Manual Trigger revalidates pending_receipt + correction_required invoices. This workflow owns ALL Sheets writes; the Telegram workflow never writes Sheets."
+  }
+}
